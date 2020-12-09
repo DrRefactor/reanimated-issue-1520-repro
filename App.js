@@ -3,45 +3,70 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
   Easing,
+  useValue,
 } from "react-native-reanimated";
-import { View, Button } from "react-native";
-import React from "react";
+import { View, Button, Text } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+const elements = new Array(500).fill(null);
+const RIGHT = 39;
+function useRightKeyListener(handler) {
+  useEffect(() => {
+    const listener = (event) => {
+      if (event.keyCode === RIGHT) {
+        event.preventDefault();
+        handler();
+      }
+    }
+  
+    document.addEventListener('keydown', listener);
+
+    return () => document.removeEventListener('keydown', listener);
+  }, []);
+}
+
+const elementSize = 250;
 
 export default function AnimatedStyleUpdateExample(props) {
-  const randomWidth = useSharedValue(10);
+  const focusedIndexSync = useRef(0);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const focusPositionAnimated = useValue(0);
 
-  const config = {
-    duration: 500,
-    easing: Easing.bezier(0.5, 0.01, 0, 1),
-  };
+  useRightKeyListener(useCallback(() => {
+    focusedIndexSync.current++;
 
-  const style = useAnimatedStyle(() => {
-    return {
-      width: withTiming(randomWidth.value, config),
-    };
-  });
+    focusPositionAnimated.setValue(-focusedIndexSync.current * elementSize);
+    setFocusedIndex(focusedIndexSync.current);
+  }));
 
   return (
-    <View
+    <Animated.View
       style={{
         flex: 1,
         alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
+        flexDirection: "row",
+        transform: [
+          {translateX: focusPositionAnimated}
+        ],
+        marginLeft: 50
       }}
     >
-      <Animated.View
-        style={[
-          { width: 100, height: 80, backgroundColor: "black", margin: 30 },
-          style,
-        ]}
-      />
-      <Button
-        title="toggle"
-        onPress={() => {
-          randomWidth.value = Math.random() * 350;
-        }}
-      />
-    </View>
+      {
+        elements.map((_, i) => (
+          <Animated.View
+            style={{
+              height: elementSize,
+              width: elementSize,
+              backgroundColor: i === focusedIndex ? 'blue' : 'red',
+              borderRadius: elementSize / 2,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <Text style={{fontSize: 32, color: 'white'}}>{i}</Text>
+          </Animated.View>
+        ))
+      }
+    </Animated.View>
   );
 }

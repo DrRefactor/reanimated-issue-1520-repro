@@ -2,6 +2,14 @@
   "expo": {
     "experiments": {
       "turboModules": true
-    }
+    },
+    "name": "reanimatedschedulertest",
+    "android": {
+      "package": "reanimated.scheduler.test"
+    },
+    "ios": {
+      "bundleIdentifier": "reanimated.scheduler.test"
+    },
+    "entryPoint": "node_modules/expo/AppEntry.js"
   }
 }
